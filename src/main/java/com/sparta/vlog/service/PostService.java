@@ -1,82 +1,112 @@
 package com.sparta.vlog.service;
 
-import com.sparta.vlog.dto.PostDto;
+import com.sparta.vlog.dto.PostRequestDto;
+import com.sparta.vlog.dto.PostResponseDto;
 import com.sparta.vlog.entity.Post;
+import com.sparta.vlog.entity.User;
 import com.sparta.vlog.jwt.JwtUtil;
 import com.sparta.vlog.repository.PostRepository;
 import com.sparta.vlog.repository.UserRepository;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
-import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
+@RequiredArgsConstructor
 @Service
 public class PostService {
     private final PostRepository postRepository;
+    private final UserRepository userRepository;
+    private final JwtUtil jwtUtil;
 
-    public PostService(PostRepository postRepository) {
-        this.postRepository = postRepository;
-    }
+    public PostResponseDto createPost(PostRequestDto requestDto, HttpServletRequest request) {
+        User user = checkToken(request);
 
-    public List<Post> getPosts() {
-        return postRepository.findAllByOrderByDateDesc();
-    }
-
-    public Post createPost(PostDto postDto, HttpServletRequest request) {
-        Post post = new Post();
-        post.setTitle(postDto.getTitle());
-        post.setUsername(postDto.getUsername());
-        post.setPassword(postDto.getPassword());
-        post.setContent(postDto.getContent());
-        post.setDate(LocalDateTime.now());
-        return postRepository.save(post);
-    }
-
-    public ResponseEntity<Post> getPostById(Long postId) {
-        Optional<Post> optionalPost = postRepository.findById(postId);
-        if (optionalPost.isPresent()) {
-            Post post = optionalPost.get();
-            return ResponseEntity.ok(post);
-        } else {
-            return ResponseEntity.notFound().build();
+        if (user == null) {
+            throw new IllegalArgumentException("인증된 사용자가 아닙니다.");
         }
+
+        Post post = new Post(requestDto, user);
+        postRepository.save(post);
+        return new PostResponseDto(post);
     }
 
-    public ResponseEntity<Post> updatePost(Long postId, PostDto updatedPostDto, HttpServletRequest request) {
-        Optional<Post> optionalPost = postRepository.findById(postId);
-        if (optionalPost.isPresent()) {
-            Post post = optionalPost.get();
-            if (post.getPassword().equals(updatedPostDto.getPassword())) {
-                post.setTitle(updatedPostDto.getTitle());
-                post.setUsername(updatedPostDto.getUsername() != null ? updatedPostDto.getUsername() : post.getUsername());
-                post.setContent(updatedPostDto.getContent());
-                postRepository.save(post);
-                return ResponseEntity.ok(post);
+    @GetMapping("/api/posts")
+    public List<PostResponseDto> getPosts() {
+        List<Post> posts = postRepository.findAllByOrderByDateDesc();
+        List<PostResponseDto> postResponseDto = new ArrayList<>();
+
+        for (Post post : posts) {
+            postResponseDto.add(new PostResponseDto(post));
+        }
+        return postResponseDto;
+    }
+
+    @Transactional(readOnly = true)
+    public PostResponseDto getPostById(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new IllegalArgumentException("아이디가 일치하지 않습니다."));
+        return new PostResponseDto(post);
+    }
+
+    public PostResponseDto updatePost(Long postId, @RequestBody PostRequestDto requestDto, HttpServletRequest request) {
+        User user = checkToken(request);
+
+        if (user == null) {
+            throw new IllegalArgumentException("인증된 사용자가 아닙니다.");
+        }
+
+        Post post = postRepository.findById(postId).orElseThrow(
+                () -> new IllegalArgumentException("해당 글이 존재하지 않습니다.")
+        );
+
+        if (!post.getUser().equals(user)) {
+            throw new IllegalArgumentException("글 작성자가 아닙니다.");
+        }
+
+        post.update(requestDto);
+        return new PostResponseDto(post);
+    }
+
+    @Transactional
+    public void deletePost(Long postId, HttpServletRequest request) {
+       User user = checkToken(request);
+
+       if (user == null) {
+           throw new IllegalArgumentException("인증된 사용자가 아닙니다.");
+       }
+
+       Post post = postRepository.findById(postId).orElseThrow(
+               () -> new IllegalStateException("해당 글이 존재하지 않습니다.")
+       );
+
+       if (post.getUser().equals(user)) {
+           postRepository.delete(post);
+       }
+    }
+
+    public User checkToken(HttpServletRequest request) {
+        String token = jwtUtil.resolveToken(request);
+        Claims claims;
+
+        if (token != null) {
+            if (jwtUtil.validateToken(token)) {
+                claims = jwtUtil.getUserInfoFromToken(token);
             } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
+                throw new IllegalArgumentException("Token Error");
             }
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
 
-    public ResponseEntity<String> deletePost(Long postId, String password, HttpServletRequest request) {
-        Optional<Post> optionalPost = postRepository.findById(postId);
-        if (optionalPost.isPresent()) {
-            Post post = optionalPost.get();
-            if (post.getPassword().equals(password)) {
-                postRepository.delete(post);
-                return ResponseEntity.ok("게시글이 성공적으로 삭제되었습니다.");
-            } else {
-                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-            }
-        } else {
-            return ResponseEntity.notFound().build();
+            User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
+                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
+            );
+            return user;
         }
+        return null;
     }
 }

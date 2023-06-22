@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SignupRequestDto {
-    @Pattern(regexp = "^[A-Za-z0-9]{4,10}$")
+    @Pattern(regexp = "^[a-z0-9]{4,10}$")
     private String username;
     @Pattern(regexp = "^[A-Za-z0-9]{4,10}$")
     private String password;
