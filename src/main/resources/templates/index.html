@@ -234,6 +234,39 @@
         }
     }
 
+    function createComment(postId) {
+        var content = $('#comment_' + postId).val();
+
+        if (content.trim() === '') {
+            alert("댓글을 입력해주세요.");
+            return;
+        }
+
+        var comment = {
+            content: content
+        };
+
+        $.ajax({
+            url: '/comments',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(comment),
+            success: function(createdComment) {
+                // 댓글 작성 성공 후 댓글 목록에 추가
+                var html = '';
+                html += '<div class="comment">';
+                html += '<p>' + createdComment.content + '</p>';
+                html += '</div>';
+
+                $('#commentList_' + postId).append(html);
+                $('#comment_' + postId).val('');
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+            }
+        });
+    }
+
     // 초기화 함수
     function initialize() {
         $.ajax({
@@ -245,6 +278,7 @@
                 var html = '';
                 for (var i = 0; i < posts.length; i++) {
                     var post = posts[i];
+                    var postId = post.id;
                     html += '<div class="post" id="post_' + post.id + '" onclick="togglePostContent(' + post.id + ')">';
                     html += '<h3>' + post.title + '</h3>';
                     html += '</div>';
@@ -276,6 +310,25 @@
                     html += '<input type="password" id="deletePassword_' + post.id + '" required><br>';
                     html += '<button type="button" onclick="deletePost(' + post.id + ')">삭제</button>';
                     html += '</div>';
+
+                    // 댓글 목록 조회
+                    $.ajax({
+                        url: '/posts/' + postId + '/comments',
+                        type: 'GET',
+                        success: function(comments) {
+                            var commentListHtml = '';
+                            for (var j = 0; j < comments.length; j++) {
+                                var comment = comments[j];
+                                commentListHtml += '<div class="comment">';
+                                commentListHtml += '<p>' + comment.content + '</p>';
+                                commentListHtml += '</div>';
+                            }
+                            $('#commentList_' + postId).html(commentListHtml);
+                        },
+                        error: function(xhr, status, error) {
+                            console.error(xhr.responseText);
+                        }
+                    });
                 }
 
                 $('#posts').append(html);

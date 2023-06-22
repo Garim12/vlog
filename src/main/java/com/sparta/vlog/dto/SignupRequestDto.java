@@ -8,9 +8,9 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SignupRequestDto {
-    @NotBlank
+    @Pattern(regexp = "^[A-Za-z0-9]{4,10}$")
     private String username;
-    @NotBlank
+    @Pattern(regexp = "^[A-Za-z0-9]{4,10}$")
     private String password;
     @Pattern(regexp = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+.[A-Za-z]{2,6}$", message = "이메일의 형식이 올바르지 않습니다. 다시 작성해주세요.")
     @NotBlank

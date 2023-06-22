@@ -4,6 +4,7 @@ package com.sparta.vlog.controller;
 import com.sparta.vlog.dto.PostDto;
 import com.sparta.vlog.entity.Post;
 import com.sparta.vlog.service.PostService;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,8 +28,8 @@ public class PostController {
 
     // 게시글 작성 API
     @PostMapping("/posts")
-    public Post createPost(@RequestBody PostDto postDto) {
-        return postService.createPost(postDto);
+    public Post createPost(@RequestBody PostDto postDto, HttpServletRequest request) {
+        return postService.createPost(postDto, request);
     }
 
     // 선택한 게시글 조회 API
@@ -39,14 +40,14 @@ public class PostController {
 
     // 선택한 게시글 수정 API
     @PutMapping("/posts/{postId}")
-    public ResponseEntity<Post> updatePost(@PathVariable Long postId, @RequestBody PostDto updatedPostDto) {
-        return postService.updatePost(postId, updatedPostDto);
+    public ResponseEntity<Post> updatePost(@PathVariable Long postId, @RequestBody PostDto updatedPostDto, HttpServletRequest request) {
+        return postService.updatePost(postId, updatedPostDto, request);
     }
 
     // 선택한 게시글 삭제 API
     @DeleteMapping("/posts/{postId}")
-    public ResponseEntity<String> deletePost(@PathVariable Long postId, @RequestParam String password) {
-        return postService.deletePost(postId, password);
+    public ResponseEntity<String> deletePost(@PathVariable Long postId, @RequestParam String password, HttpServletRequest request) {
+        return postService.deletePost(postId, password, request);
     }
 }
 

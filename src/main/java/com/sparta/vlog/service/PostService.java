@@ -1,9 +1,12 @@
-// PostService.java
 package com.sparta.vlog.service;
 
 import com.sparta.vlog.dto.PostDto;
 import com.sparta.vlog.entity.Post;
+import com.sparta.vlog.jwt.JwtUtil;
 import com.sparta.vlog.repository.PostRepository;
+import com.sparta.vlog.repository.UserRepository;
+import jakarta.servlet.http.HttpServletRequest;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -24,7 +27,7 @@ public class PostService {
         return postRepository.findAllByOrderByDateDesc();
     }
 
-    public Post createPost(PostDto postDto) {
+    public Post createPost(PostDto postDto, HttpServletRequest request) {
         Post post = new Post();
         post.setTitle(postDto.getTitle());
         post.setUsername(postDto.getUsername());
@@ -44,7 +47,7 @@ public class PostService {
         }
     }
 
-    public ResponseEntity<Post> updatePost(Long postId, PostDto updatedPostDto) {
+    public ResponseEntity<Post> updatePost(Long postId, PostDto updatedPostDto, HttpServletRequest request) {
         Optional<Post> optionalPost = postRepository.findById(postId);
         if (optionalPost.isPresent()) {
             Post post = optionalPost.get();
@@ -62,7 +65,7 @@ public class PostService {
         }
     }
 
-    public ResponseEntity<String> deletePost(Long postId, String password) {
+    public ResponseEntity<String> deletePost(Long postId, String password, HttpServletRequest request) {
         Optional<Post> optionalPost = postRepository.findById(postId);
         if (optionalPost.isPresent()) {
             Post post = optionalPost.get();
