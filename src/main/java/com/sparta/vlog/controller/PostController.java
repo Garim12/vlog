@@ -22,7 +22,7 @@ public class PostController {
     }
 
     // 전체 게시글 목록 조회 API
-    @GetMapping("/postposts")
+    @GetMapping("/posts")
     public List<PostResponseDto> getAllPosts() {
         return postService.getPosts();
     }

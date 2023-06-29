@@ -37,7 +37,6 @@ public class PostService {
         return new PostResponseDto(post);
     }
 
-    @GetMapping("/api/posts")
     public List<PostResponseDto> getPosts() {
         List<Post> posts = postRepository.findAllByOrderByDateDesc();
         List<PostResponseDto> postResponseDto = new ArrayList<>();

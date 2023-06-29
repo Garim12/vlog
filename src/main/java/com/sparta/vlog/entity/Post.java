@@ -18,11 +18,15 @@ import java.util.List;
 public class Post extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column
     private Long id;
-
+    @Column
     private String title;
+    @Column
     private String username;
+    @Column
     private String password;
+    @Column
     private String content;
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
