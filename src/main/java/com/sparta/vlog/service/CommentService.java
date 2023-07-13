@@ -30,8 +30,8 @@ public class CommentService {
         return commentRepository.findById(id);
     }
 
-    public List<Comment> getCommentsByPost(Long postId) {
-        return commentRepository.findByPostId(postId);
+    public Optional<Comment> getCommentsByPost(Long postId) {
+        return commentRepository.findById(postId);
     }
 
     public Comment updateComment(Long id, String newContent) {

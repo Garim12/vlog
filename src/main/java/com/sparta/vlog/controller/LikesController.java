@@ -4,22 +4,30 @@ import com.sparta.vlog.security.UserDetailsImpl;
 import com.sparta.vlog.service.LikesService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
 public class LikesController {
-
     private final LikesService likesService;
 
     @GetMapping("/getLikes/{id}")
     public boolean getLikes(@PathVariable Long id, @AuthenticationPrincipal UserDetailsImpl userDetails) {
-        return likesService.getLikes(id, userDetails);
+        return likesService.hasLiked(id, userDetails);
     }
 
-    @GetMapping("/getLikes/{id}")
-    public int getLikesNumbers(@PathVariable Long id) []
-        return likesService.LikesNumbers(id);
+    @GetMapping("/getLikesNumbers/{id}")
+    public int getLikesNumbers(@PathVariable Long id) {
+        return likesService.getLikesCount(id);
+    }
+
+    @DeleteMapping("/posts/{id}/LikesClick")
+    public void postLikesDelete(@PathVariable Long id, @RequestParam boolean requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        likesService.likesClick(id, requestDto, userDetails);
+    }
+
+    @DeleteMapping("/comments/{id}/LikesClick")
+    public void commentLikesDelete(@PathVariable Long id, @RequestParam boolean requestDto, @AuthenticationPrincipal UserDetailsImpl userDetails) {
+        likesService.likesClick(id, requestDto, userDetails);
+    }
 }

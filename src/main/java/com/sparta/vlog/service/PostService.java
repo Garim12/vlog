@@ -4,19 +4,21 @@ import com.sparta.vlog.dto.PostRequestDto;
 import com.sparta.vlog.dto.PostResponseDto;
 import com.sparta.vlog.entity.Post;
 import com.sparta.vlog.entity.User;
+import com.sparta.vlog.exception.NotFoundException;
 import com.sparta.vlog.jwt.JwtUtil;
 import com.sparta.vlog.repository.PostRepository;
 import com.sparta.vlog.repository.UserRepository;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @RequiredArgsConstructor
 @Service
@@ -24,12 +26,18 @@ public class PostService {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final JwtUtil jwtUtil;
+    private final MessageSource messageSource;
 
     public PostResponseDto createPost(PostRequestDto requestDto, HttpServletRequest request) {
         User user = checkToken(request);
 
         if (user == null) {
-            throw new IllegalArgumentException("인증된 사용자가 아닙니다.");
+            throw new NotFoundException(messageSource.getMessage(
+                    "not.found.User",
+                    null,
+                    "Not Found User",
+                    Locale.getDefault()
+            ));
         }
 
         Post post = new Post(requestDto, user);
@@ -50,7 +58,12 @@ public class PostService {
     @Transactional(readOnly = true)
     public PostResponseDto getPostById(Long postId) {
         Post post = postRepository.findById(postId)
-                .orElseThrow(() -> new IllegalArgumentException("아이디가 일치하지 않습니다."));
+                .orElseThrow(() -> new NotFoundException(messageSource.getMessage(
+                "not.found.User",
+                null,
+                "Not Found User",
+                Locale.getDefault()
+        )));
         return new PostResponseDto(post);
     }
 
@@ -58,15 +71,29 @@ public class PostService {
         User user = checkToken(request);
 
         if (user == null) {
-            throw new IllegalArgumentException("인증된 사용자가 아닙니다.");
+            throw new NotFoundException(messageSource.getMessage(
+                    "not.found.User",
+                    null,
+                    "Not Found User",
+                    Locale.getDefault()
+            ));
         }
 
         Post post = postRepository.findById(postId).orElseThrow(
-                () -> new IllegalArgumentException("해당 글이 존재하지 않습니다.")
-        );
+                () -> new NotFoundException(messageSource.getMessage(
+                "not.found.Post",
+                null,
+                "Not Found Post",
+                Locale.getDefault()
+        )));
 
         if (!post.getUser().equals(user)) {
-            throw new IllegalArgumentException("글 작성자가 아닙니다.");
+            throw new NotFoundException(messageSource.getMessage(
+                    "not.found.User",
+                    null,
+                    "Not Found User",
+                    Locale.getDefault()
+            ));
         }
 
         post.update(requestDto);
@@ -78,12 +105,21 @@ public class PostService {
        User user = checkToken(request);
 
        if (user == null) {
-           throw new IllegalArgumentException("인증된 사용자가 아닙니다.");
+           throw new NotFoundException(messageSource.getMessage(
+                   "not.found.User",
+                   null,
+                   "Not Found User",
+                   Locale.getDefault()
+           ));
        }
 
        Post post = postRepository.findById(postId).orElseThrow(
-               () -> new IllegalStateException("해당 글이 존재하지 않습니다.")
-       );
+               () -> new NotFoundException(messageSource.getMessage(
+                "not.found.Post",
+                null,
+                "Not Found Post",
+                Locale.getDefault()
+        )));
 
        if (post.getUser().equals(user)) {
            postRepository.delete(post);
@@ -102,8 +138,12 @@ public class PostService {
             }
 
             User user = userRepository.findByUsername(claims.getSubject()).orElseThrow(
-                    () -> new IllegalArgumentException("사용자가 존재하지 않습니다.")
-            );
+                    () -> new NotFoundException(messageSource.getMessage(
+                            "not.found.User",
+                            null,
+                            "Not Found User",
+                            Locale.getDefault()
+                    )));
             return user;
         }
         return null;

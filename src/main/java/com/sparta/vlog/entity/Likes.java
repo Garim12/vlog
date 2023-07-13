@@ -15,18 +15,29 @@ public class Likes {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    //좋아요 누른 사람   좋아요 n:1 유저
+    private boolean liked = false;
+
     @ManyToOne
-    @JoinColumn(name = "users")
+    @JoinColumn(name = "user_id")
     private User user;
 
-    //좋아요가 눌린 게시글  좋아요 n:1 게시글
     @ManyToOne
-    @JoinColumn(name = "posts")
+    @JoinColumn(name = "post_id")
     private Post post;
 
-    public Likes(Post post, User user){
-        this.post = post;
+    @ManyToOne
+    @JoinColumn(name = "comments_id")
+    private Comment comment;
+
+    public Likes(User user, Post post){
         this.user = user;
+        this.post = post;
+        this.liked = true;
+    }
+
+    public Likes(User user, Comment comment){
+        this.user = user;
+        this.comment = comment;
+        this.liked = true;
     }
 }

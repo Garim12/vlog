@@ -5,6 +5,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -21,6 +24,9 @@ public class Comment extends BaseEntity{
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "post_id")
     private Post post;
+
+    @OneToMany(mappedBy = "comment")
+    private List<Likes> likesList = new ArrayList<>();
 
     public Comment(String content) {
         this.content = content;
