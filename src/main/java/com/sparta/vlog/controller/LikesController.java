@@ -6,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @RestController
 @RequiredArgsConstructor
 public class LikesController {
@@ -17,7 +19,7 @@ public class LikesController {
     }
 
     @GetMapping("/getLikesNumbers/{id}")
-    public int getLikesNumbers(@PathVariable Long id) {
+    public Map<String, Integer> getLikesNumbers(@PathVariable Long id) {
         return likesService.getLikesCount(id);
     }
 

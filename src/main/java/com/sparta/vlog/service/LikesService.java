@@ -13,8 +13,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -85,14 +87,18 @@ public class LikesService {
         return likesRepository.existsByPostAndUserAndComment(post, user, comment);
     }
 
-    public int getLikesCount(Long id) {
+    public Map<String, Integer> getLikesCount(Long id) {
         Post post = findPost(id);
         Comment comment = findComment(id);
 
         int postLikesCount = likesRepository.countByPost(post);
         int commentLikesCount = likesRepository.countByComment(comment);
 
-        return postLikesCount + commentLikesCount;
+        Map<String, Integer> likesCount = new HashMap<>();
+        likesCount.put("postLikesCount", postLikesCount);
+        likesCount.put("commentLikesCount", commentLikesCount);
+
+        return likesCount;
     }
 }
 
