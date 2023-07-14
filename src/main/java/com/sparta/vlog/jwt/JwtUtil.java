@@ -1,6 +1,7 @@
 package com.sparta.vlog.jwt;
 
 import com.sparta.vlog.entity.UserRoleEnum;
+import com.sparta.vlog.exception.NotFoundException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.MessageSource;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -21,6 +23,7 @@ import java.net.URLEncoder;
 import java.security.Key;
 import java.util.Base64;
 import java.util.Date;
+import java.util.Locale;
 
 @Slf4j
 @Component
@@ -34,6 +37,7 @@ public class JwtUtil {
     public static final String BEARER_PREFIX = "Bearer ";
     // 토큰 만료시간
     private final long TOKEN_TIME = 60 * 60 * 1000L; // 60분
+    private final MessageSource messageSource;
 
     @Value("${jwt.secret.key}") // Base64 Encode 한 SecretKey
     private String secretKey;
@@ -92,7 +96,12 @@ public class JwtUtil {
             return tokenValue.substring(7);
         }
         logger.error("Not Found Token");
-        throw new NullPointerException("Not Found Token");
+        throw new NotFoundException(messageSource.getMessage(
+                "not.found.Token",
+                null,
+                "토큰값이 유효하지 않습니다.",
+                Locale.getDefault()
+        ));
     }
 
     // 토큰 검증
@@ -102,14 +111,37 @@ public class JwtUtil {
             return true;
         } catch (SecurityException | MalformedJwtException | SignatureException e) {
             logger.error("Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.");
+            throw new NotFoundException(messageSource.getMessage(
+                    "not.found.Token",
+                    null,
+                    "Invalid JWT signature, 유효하지 않는 JWT 서명 입니다.",
+                    Locale.getDefault()
+            ));
         } catch (ExpiredJwtException e) {
             logger.error("Expired JWT token, 만료된 JWT token 입니다.");
+            throw new NotFoundException(messageSource.getMessage(
+                    "not.found.Token",
+                    null,
+                    "Expired JWT token, 만료된 JWT token 입니다.",
+                    Locale.getDefault()
+            ));
         } catch (UnsupportedJwtException e) {
             logger.error("Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.");
+            throw new NotFoundException(messageSource.getMessage(
+                    "not.found.Token",
+                    null,
+                    "Unsupported JWT token, 지원되지 않는 JWT 토큰 입니다.",
+                    Locale.getDefault()
+            ));
         } catch (IllegalArgumentException e) {
             logger.error("JWT claims is empty, 잘못된 JWT 토큰 입니다.");
+            throw new NotFoundException(messageSource.getMessage(
+                    "not.found.Token",
+                    null,
+                    "JWT claims is empty, 잘못된 JWT 토큰 입니다.",
+                    Locale.getDefault()
+            ));
         }
-        return false;
     }
 
     // 토큰에서 사용자 정보 가져오기
